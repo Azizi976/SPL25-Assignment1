@@ -20,6 +20,7 @@ Playlist::~Playlist() {
     PlaylistNode* current = head;
     while (current != nullptr){
         PlaylistNode* next = current->next;
+        delete current->track;
         delete current;
         current = next;
     }
@@ -139,6 +140,8 @@ void Playlist::remove_track(const std::string& title) {
 
         track_count--;
         std::cout << "Removed '" << title << "' from playlist" << std::endl;
+        delete current->track;
+        delete current;    
 
     } else {
         std::cout << "Track '" << title << "' not found in playlist" << std::endl;
