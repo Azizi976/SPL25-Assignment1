@@ -13,16 +13,17 @@ MixingEngineService::MixingEngineService()
     std::cout << "[MixingEngineService] Initialized with 2 empty decks" << std::endl;
 }
 
-// Implementing role of 3
+// Implementing rule of 3
 MixingEngineService::~MixingEngineService()
 {
     std::cout << "[MixingEngineService] Cleaning up decks..." << std::endl;
-    for (AudioTrack *track : decks)
+
+    for (int i = 0; i < 2; i++)
     {
-        if (track)
+        if (decks[i])
         {
-            delete track;
-            track = nullptr;
+            delete decks[i];
+            decks[i] = nullptr;
         }
     }
 }
@@ -58,12 +59,12 @@ MixingEngineService &MixingEngineService::operator=(const MixingEngineService &o
     bpm_tolerance = other.bpm_tolerance;
 
     // Destroying the current track in decks
-    for (AudioTrack *track : decks)
+    for (int i = 0; i < 2; i++)
     {
-        if (track)
+        if (decks[i])
         {
-            delete track;
-            track = nullptr;
+            delete decks[i];
+            decks[i] = nullptr;
         }
     }
 
@@ -74,7 +75,10 @@ MixingEngineService &MixingEngineService::operator=(const MixingEngineService &o
         {
             decks[i] = other.decks[i]->clone().release();
         }
-        decks[i] = nullptr;
+        else
+        {
+            decks[i] = nullptr;
+        }
     }
     return *this;
 }
@@ -210,15 +214,16 @@ bool MixingEngineService::can_mix_tracks(const PointerWrapper<AudioTrack> &track
 void MixingEngineService::sync_bpm(const PointerWrapper<AudioTrack> &track) const
 {
     // Verify both active deck and new track are valid
-    if (decks[active_deck] && track){
+    if (decks[active_deck] && track)
+    {
 
         // Get original BPM
         int new_track_bpm = track->get_bpm();
 
         // Get original BPM
         int average_bpm = (new_track_bpm + decks[active_deck]->get_bpm()) / 2;
-        //track.get()->bpm = average_bpm;
+        track->set_bpm(average_bpm);
 
-        std::cout << "[Sync BPM] Syncing BPM from" << decks[active_deck] << "to " << track->get_title() << std::endl;
+        std::cout << "[Sync BPM] Syncing BPM from " << new_track_bpm << "to " << track->get_bpm() << std::endl;
     }
 }
