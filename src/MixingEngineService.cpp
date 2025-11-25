@@ -93,13 +93,17 @@ int MixingEngineService::loadTrackToDeck(const AudioTrack &track)
     // Check if the clone worked
     if (!track_clone)
     {
-        std::cerr << "[ERROR] Track: \"" << track_clone->get_title() << "\" failed to clone" << std::endl;
+        std::cerr << "[ERROR] Track: \"" << track.get_title() << "\" failed to clone" << std::endl;
         return -1;
     }
 
     // Identifing tartget deck
     int target_deck;
-    if (active_deck == 1)
+    if (decks[0] == nullptr && decks[1] == nullptr)
+    {
+        target_deck = 0;
+    }
+    else if (active_deck == 1)
     {
         target_deck = 0;
     }
@@ -109,7 +113,7 @@ int MixingEngineService::loadTrackToDeck(const AudioTrack &track)
     }
 
     // Log output
-    std::cout << "[Deck Switch] Target deck:" << target_deck << std::endl;
+    std::cout << "[Deck Switch] Target deck: " << target_deck << std::endl;
 
     // Deleting the track in target deck
     if (decks[target_deck])
@@ -118,18 +122,38 @@ int MixingEngineService::loadTrackToDeck(const AudioTrack &track)
         decks[target_deck] = nullptr;
     }
 
-    //Performing a track preparation on cloned track        
+    // Performing a track preparation on cloned track
     track_clone->load();
     track_clone->analyze_beatgrid();
 
-    //BPM Management
-    if(auto_sync && decks[active_deck]){
-        if(decks[active_deck]->get_bpm()> bpm_tolerance ){
-            
+    // BPM Management
+    if (auto_sync && decks[active_deck])
+    {
+        if (!can_mix_tracks(track_clone))
+        {
+            sync_bpm(track_clone);
         }
     }
 
-    return -1; // Placeholder
+    // Release pointer from pointer wrapper and assign to target deck
+    AudioTrack *raw_ptr = track_clone.release();
+    decks[target_deck] = raw_ptr;
+    std::cout << "[Load Complete] " << raw_ptr->get_title() << "is now loaded on deck " << target_deck << std::endl;
+
+    // Unload the previously active deck
+    if (decks[active_deck])
+    {
+        std::cout << "  [Unload] Unloading previous deck " << active_deck << decks[active_deck]->get_title() << std::endl;
+        delete decks[active_deck];
+        decks[active_deck] = nullptr;
+    }
+
+    // Switch the active deck
+    active_deck = target_deck;
+
+    std::cout << " [Active Deck] Switched to deck " << target_deck << std::endl;
+
+    return target_deck;
 }
 
 /**
