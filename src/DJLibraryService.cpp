@@ -8,6 +8,74 @@
 
 DJLibraryService::DJLibraryService(const Playlist &playlist)
     : playlist(playlist), library() {}
+
+/**
+ * Rule of 3 Implementation
+ */
+
+// Destructor
+DJLibraryService::~DJLibraryService()
+{
+    // Delete all tracks in library vector
+    for (AudioTrack *track : library)
+    {
+        delete track;
+    }
+}
+
+// Copy constructor
+DJLibraryService::DJLibraryService(const DJLibraryService &other)
+    : playlist(other.playlist)
+{
+    // Deep copy of each track
+    for (AudioTrack *track : other.library)
+    {
+        if (track != nullptr)
+        {
+            // Clone each track and store the raw pointer with release
+            PointerWrapper<AudioTrack> cloned = track->clone();
+            if (cloned)
+            {
+                library.push_back(cloned.release());
+            }
+        }
+    }
+}
+
+// Copy assignment operator
+DJLibraryService &DJLibraryService::operator=(const DJLibraryService &other)
+{
+    // Check if other eqaules to this
+    if (this == &other)
+    {
+        return *this;
+    }
+
+    // Clean up existing library
+    for (AudioTrack *track : library)
+    {
+        delete track;
+    }
+
+    // Deep copy the library vector
+    for (AudioTrack *track : other.library)
+    {
+        if (track != nullptr)
+        {
+            PointerWrapper<AudioTrack> cloned = track->clone();
+            if (cloned)
+            {
+                library.push_back(cloned.release());
+            }
+        }
+    }
+
+    // Copy playlist
+    playlist = other.playlist;
+
+    return *this;
+}
+
 /**
  * @brief Load a playlist from track indices referencing the library
  * @param library_tracks Vector of track info from config
@@ -70,7 +138,6 @@ Playlist &DJLibraryService::getPlaylist()
     return playlist;
 }
 
-
 AudioTrack *DJLibraryService::findTrack(const std::string &track_title)
 {
     return playlist.find_track(track_title);
@@ -87,16 +154,16 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string &playlist_name,
     for (size_t i = 0; i < track_indices.size(); i++)
     {
         int index = track_indices[i];
-        
+
         // Validate index (1-based, so valid range is 1 to library.size())
         if (index < 1 || index > static_cast<int>(library.size()))
         {
             std::cout << "[WARNING] Invalid track index: " << index << std::endl;
-            continue;  // Skip to next track
+            continue; // Skip to next track
         }
 
         // Get track from library (convert 1-based to 0-based)
-        AudioTrack* source_track = library[index - 1];
+        AudioTrack *source_track = library[index - 1];
 
         // Clone track
         PointerWrapper<AudioTrack> track_clone = source_track->clone();
@@ -105,11 +172,11 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string &playlist_name,
         if (!track_clone)
         {
             std::cerr << "[ERROR] Track: \"" << source_track->get_title() << "\" failed to clone" << std::endl;
-            continue;  // Skip to next track
+            continue; // Skip to next track
         }
 
         // Release ownership from wrapper
-        AudioTrack* raw_pointer = track_clone.release();
+        AudioTrack *raw_pointer = track_clone.release();
 
         // Load and analyze
         raw_pointer->load();
@@ -120,7 +187,7 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string &playlist_name,
 
         std::cout << "Added '" << source_track->get_title() << "' to playlist '" << playlist_name << "'" << std::endl;
     }
-    
+
     std::cout << "[INFO] Playlist loaded: " << playlist_name << " (" << playlist.get_track_count() << " tracks)" << std::endl;
 }
 
@@ -129,12 +196,17 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string &playlist_name,
  */
 std::vector<std::string> DJLibraryService::getTrackTitles() const
 {
+
+    // Allocating a new vector for the titles
     std::vector<std::string> track_titles;
 
+    // Allocating a new memory for the AudioTracks pointers
     std::vector<AudioTrack *> tracks = playlist.getTracks();
-    
-    for (AudioTrack* track: tracks){
-        track_titles.push_back(track->get_title());   
+
+    // Iterating through tracks to get titles from each one
+    for (AudioTrack *track : tracks)
+    {
+        track_titles.push_back(track->get_title());
     }
     return track_titles;
 }
