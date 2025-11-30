@@ -209,9 +209,6 @@ void DJSession::simulate_dj_performance()
 
             // All tracks processed
             print_session_summary();
-
-            // Reset statistics
-            // stats = SessionStats();
         }
     }
 
@@ -248,9 +245,6 @@ void DJSession::simulate_dj_performance()
 
             // All tracks processed
             print_session_summary();
-
-            // Reset statistics
-            // stats = SessionStats();
         }
     }
     // Log after loop completion
