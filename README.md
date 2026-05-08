@@ -4,7 +4,7 @@
 This project was developed as part of Assignment 1 in the Systems Programming (SPL) course at Ben-Gurion University of the Negev. 
 Written in C++, the project focuses on low-level memory management, Object-Oriented Programming (OOP) principles, polymorphism, and the implementation of advanced data structures in an environment without a Garbage Collector.
 
-**Developers:** Tal Azizi & [Ifat Nahmani]
+**Developers:** Tal Azizi & Ifat Nahmani
 
 ## Project Objectives
 The system simulates a professional DJ workstation built through four cumulative phases. Each phase addresses specific engineering challenges related to memory management and software architecture:
